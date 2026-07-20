@@ -1,0 +1,42 @@
+Temp
+Library
+battle-log.txt
+battle-bm-log.txt
+UserSettings
+ImageDuplicity.txt
+MemoryCaptures/
+
+# ===================================== #
+# Visual Studio / MonoDevelop generated #
+# ===================================== #
+ExportedObj/
+obj/
+*.svd
+*.userprefs
+*.sln
+*.slnx
+/*.csproj
+/*.csproj.DotSettings 
+*.pidb
+*.suo
+/*.sln
+*.user
+*.unityproj
+*.booproj
+Logs
+UnitTests/bin
+
+# IDEs
+.vs
+.idea
+Assets/Plugins/Editor/JetBrains
+AndroidBuild
+Assets/*Unity Technologies*
+iosBuild
+Assets/SpriteBakingStudio*
+
+# Mac
+.DS_Store
+
+# AI
+.claude/settings.local.json
