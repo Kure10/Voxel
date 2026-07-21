@@ -6,9 +6,11 @@ namespace VoxelWorld
     /// </summary>
     public enum BlockType : byte
     {
+        Nothing = 99,
         Air = 0,
-        Gray = 1,   // deep layer - rock, slowest to mine
-        Green = 2,  // walkable layer - grass, normal mine speed
-        White = 3   // high layer - snow, fastest to mine
+        Gray = 1, // deep layer - rock, slowest to mine
+        Green = 2, // walkable layer - grass, normal mine speed
+        White = 3, // high layer - snow, fastest to mine
+        Water = 5 // high layer - snow, fastest to mine
     }
 }

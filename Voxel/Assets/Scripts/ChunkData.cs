@@ -4,7 +4,7 @@ namespace VoxelWorld
 {
     public class ChunkData
     {
-        public BlockType[] blocks;
+        public BlockType[] Blocks;
         public int ChunkSize = 16;
         public int ChunkHeight = 100;
         public World WorldReference;
@@ -12,13 +12,13 @@ namespace VoxelWorld
 
         public bool ModifiedByThePlayer = false;
         
-        public ChunkData(World world, Vector3Int position , int size, int height)
+        public ChunkData(int chunkSize, int chunkHeight, World world, Vector3Int worldPosition)
         {
+            ChunkHeight = chunkHeight;
+            ChunkSize = chunkSize;
             WorldReference = world;
-            WorldPosition = position;
-            ChunkHeight = height;
-            ChunkSize = size;
-            blocks = new BlockType[ChunkSize * ChunkSize * ChunkHeight];
+            WorldPosition = worldPosition;
+            Blocks = new BlockType[chunkSize * chunkHeight * chunkSize];
         }
         
         

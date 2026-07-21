@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb7eeb437689a704692334f684008bc6, type: 3}
+  m_Name: Data
+  m_EditorClassIdentifier: Assembly-CSharp::VoxelWorld.BlockDataSO
+  TextureSizeX: 0.1
+  TextureSizeY: 0.1
+  TextureDataList:
+  - BlockType: 0
+    Up: {x: 0, y: 0}
+    Down: {x: 0, y: 0}
+    Side: {x: 0, y: 0}
+    IsSolid: 0
+    GeneratesCollider: 0
+  - BlockType: 1
+    Up: {x: 7, y: 4}
+    Down: {x: 7, y: 4}
+    Side: {x: 7, y: 4}
+    IsSolid: 1
+    GeneratesCollider: 1
+  - BlockType: 0
+    Up: {x: 8, y: 0}
+    Down: {x: 8, y: 0}
+    Side: {x: 8, y: 0}
+    IsSolid: 0
+    GeneratesCollider: 0
+  - BlockType: 2
+    Up: {x: 8, y: 9}
+    Down: {x: 8, y: 9}
+    Side: {x: 8, y: 9}
+    IsSolid: 1
+    GeneratesCollider: 1
+  - BlockType: 3
+    Up: {x: 4, y: 3}
+    Down: {x: 4, y: 3}
+    Side: {x: 4, y: 3}
+    IsSolid: 1
+    GeneratesCollider: 1
+  - BlockType: 5
+    Up: {x: 7, y: 0}
+    Down: {x: 7, y: 0}
+    Side: {x: 7, y: 0}
+    IsSolid: 0
+    GeneratesCollider: 0
