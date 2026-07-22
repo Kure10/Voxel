@@ -56,6 +56,8 @@ namespace Character
         private void HandleMove(Vector2 move) => _moveInput = move;
         private void HandleJump() => _jumpRequested = true;
 
+        // FixedUpdate is called once per physics step, so we can apply gravity/movement here.
+        // TODO ( If we will need physics) Remove all fixed update calls and consider use update.
         private void FixedUpdate()
         {
             bool isGrounded = _controller.isGrounded;
@@ -79,7 +81,8 @@ namespace Character
         protected override void OnControllerDestroy()
         {
             base.OnControllerDestroy();
-            if (_coreGameInputsSystem == null) return;
+            if (_coreGameInputsSystem == null)
+                return;
             _coreGameInputsSystem.OnMove -= HandleMove;
             _coreGameInputsSystem.OnLook -= HandleLook;
             _coreGameInputsSystem.OnJumpPerformed -= HandleJump;
