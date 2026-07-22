@@ -1,4 +1,5 @@
 using UnityEngine;
+using After.Main;
 
 namespace VoxelWorld
 {
@@ -26,10 +27,23 @@ namespace VoxelWorld
             if (_spawnedPlayer == null)
             {
                 _spawnedPlayer = Instantiate(PlayerPrefab, spawnPosition, Quaternion.identity);
+                InitializePlayerControllers(_spawnedPlayer);
             }
             else
             {
                 _spawnedPlayer.transform.position = spawnPosition; // re-generating world moves existing player instead of duplicating
+            }
+        }
+
+        private void InitializePlayerControllers(GameObject playerInstance)
+        {
+            // Any Controller (PlayerController, future mining/building controllers, etc.)
+            // needs [Inject] fields filled and Initialize() called explicitly,
+            // since Instantiate() alone doesn't go through the Injector.
+            foreach (var controller in playerInstance.GetComponentsInChildren<Controller>(true))
+            {
+                Injector.Instance.InjectInto(controller);
+                controller.Initialize();
             }
         }
     }

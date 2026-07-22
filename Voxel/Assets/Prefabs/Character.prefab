@@ -363,10 +363,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f40e96a6806ddbc4d9703725a202a0e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Voxel.PlayerController
+  _hierarchicalName: 
+  _parent: {fileID: 0}
   PlayerCamera: {fileID: 8678623741638602216}
   MoveSpeed: 5
-  Gravity: -20
   JumpHeight: 1.5
-  MouseSensitivity: 2
+  MouseSensitivity: 0.2
   MinLookAngle: -90
   MaxLookAngle: 90
