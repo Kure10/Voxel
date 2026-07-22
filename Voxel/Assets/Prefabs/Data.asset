@@ -40,9 +40,9 @@ MonoBehaviour:
     IsSolid: 1
     GeneratesCollider: 1
   - BlockType: 3
-    Up: {x: 4, y: 3}
-    Down: {x: 4, y: 3}
-    Side: {x: 4, y: 3}
+    Up: {x: 3, y: 4}
+    Down: {x: 3, y: 4}
+    Side: {x: 3, y: 4}
     IsSolid: 1
     GeneratesCollider: 1
   - BlockType: 5

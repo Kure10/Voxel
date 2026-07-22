@@ -51,13 +51,17 @@
     <Compile Include="Assets\Scripts\BlockHelper.cs" />
     <Compile Include="Assets\Scripts\ChunkRenderer.cs" />
     <Compile Include="Assets\Scripts\Chunk.cs" />
+    <Compile Include="Assets\Scripts\Character\PlayerController.cs" />
     <Compile Include="Assets\Scripts\BlockType.cs" />
     <Compile Include="Assets\Scripts\BlockDataManager.cs" />
     <Compile Include="Assets\Scripts\World.cs" />
+    <Compile Include="Assets\Scripts\WorldGenerator\NoiseSettingsSO.cs" />
+    <Compile Include="Assets\Scripts\Character\PlayerSpawner.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Scripts\DirectionExtension.cs" />
     <Compile Include="Assets\Scripts\MeshData.cs" />
     <Compile Include="Assets\Scripts\WorldRules\WorldRules.cs" />
+    <Compile Include="Assets\Scripts\WorldGenerator\TerrainGenerator.cs" />
     <Compile Include="Assets\Scripts\VoxelData\BlockDataSO.cs" />
     <Compile Include="Assets\Scripts\Direction.cs" />
     <None Include="Assets\_Textures\Kenny Assets Voxel pack\Spritesheets\spritesheet_characters.xml" />
