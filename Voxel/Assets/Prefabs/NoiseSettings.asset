@@ -16,4 +16,4 @@ MonoBehaviour:
   Octaves: 4
   Persistance: 0.5
   RedistributionModifier: 0.5
-  Exponent: 2
+  Exponent: 1.8

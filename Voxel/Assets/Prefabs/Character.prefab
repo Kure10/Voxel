@@ -223,6 +223,7 @@ GameObject:
   - component: {fileID: 6252827629379450314}
   - component: {fileID: 3372638801505942307}
   - component: {fileID: 7203474314620328707}
+  - component: {fileID: -8645677535911987355}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -367,7 +368,21 @@ MonoBehaviour:
   _parent: {fileID: 0}
   PlayerCamera: {fileID: 8678623741638602216}
   MoveSpeed: 5
-  JumpHeight: 1.5
+  JumpHeight: 1.8
   MouseSensitivity: 0.2
   MinLookAngle: -90
   MaxLookAngle: 90
+--- !u!114 &-8645677535911987355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6806332029536266192}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a9e4b89300ba84458dd789d1f3a8f39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Character.PlayerActions
+  _hierarchicalName: 
+  _parent: {fileID: 0}

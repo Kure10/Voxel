@@ -56,9 +56,7 @@ namespace Character
         private void HandleMove(Vector2 move) => _moveInput = move;
         private void HandleJump() => _jumpRequested = true;
 
-        // FixedUpdate is called once per physics step, so we can apply gravity/movement here.
-        // TODO ( If we will need physics) Remove all fixed update calls and consider use update.
-        private void FixedUpdate()
+        private void Update()
         {
             bool isGrounded = _controller.isGrounded;
             if (isGrounded && _verticalVelocity < 0f)
@@ -70,19 +68,18 @@ namespace Character
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Physics.gravity.y);
             _jumpRequested = false;
 
-            _verticalVelocity += Physics.gravity.y * Time.fixedDeltaTime;
+            _verticalVelocity += Physics.gravity.y * Time.deltaTime;
 
             Vector3 velocity = moveDirection * MoveSpeed;
             velocity.y = _verticalVelocity;
 
-            _controller.Move(velocity * Time.fixedDeltaTime);
+            _controller.Move(velocity * Time.deltaTime);
         }
 
         protected override void OnControllerDestroy()
         {
             base.OnControllerDestroy();
-            if (_coreGameInputsSystem == null)
-                return;
+            if (_coreGameInputsSystem == null) return;
             _coreGameInputsSystem.OnMove -= HandleMove;
             _coreGameInputsSystem.OnLook -= HandleLook;
             _coreGameInputsSystem.OnJumpPerformed -= HandleJump;
