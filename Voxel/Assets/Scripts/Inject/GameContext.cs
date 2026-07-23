@@ -15,7 +15,7 @@ namespace After.Main
         public MyEventManager MyEventManager;
         public CoreGameInputsSystem InputsSystem;
 
-        void Awake()
+        private void Awake()
         {
             Injector injector = Injector.Instance;
 
@@ -44,9 +44,21 @@ namespace After.Main
             InputsSystem = injector.TryMapManager(InputsSystem);
             MyEventManager = injector.TryMapManager(MyEventManager);
 
+
+            injector.TryMapService(new PlayerService());
+
             //
             // injector.TryMapService(new EconomyService());
             // injector.TryMapService(new SpecialistService());
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance != this)
+                return;
+
+            Injector.Instance.DestroyAllServices();
+            Instance = null;
         }
     }
 }

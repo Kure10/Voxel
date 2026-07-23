@@ -3,8 +3,10 @@ using After.Main;
 
 namespace VoxelWorld
 {
-    public class PlayerSpawner : MonoBehaviour
+    public class PlayerSpawner : Controller
     {
+        [Inject] private MyEventManager _eventManager;
+
         public World World;
         public GameObject PlayerPrefab;
 
@@ -13,7 +15,13 @@ namespace VoxelWorld
 
         private GameObject _spawnedPlayer;
 
-        public void SpawnPlayer()
+        public override void Initialize()
+        {
+            base.Initialize();
+            _eventManager.AddListener(EventName.OnWorldGenerated, SpawnPlayer);
+        }
+
+        private void SpawnPlayer()
         {
             int centerX = (World.MapSizeInChunks * World.ChunkSize) / 2;
             int centerZ = (World.MapSizeInChunks * World.ChunkSize) / 2;
@@ -28,11 +36,24 @@ namespace VoxelWorld
             {
                 _spawnedPlayer = Instantiate(PlayerPrefab, spawnPosition, Quaternion.identity);
                 InitializePlayerControllers(_spawnedPlayer);
+
+                var character = _spawnedPlayer.GetComponentInChildren<Character.Character>();
+                if (character != null)
+                    _eventManager.DispatchEvent(new Character.PlayerAddedEvent(character));
             }
             else
             {
                 _spawnedPlayer.transform.position = spawnPosition; // re-generating world moves existing player instead of duplicating
             }
+        }
+
+        protected override void OnControllerDestroy()
+        {
+            //Todo remove when we implement dead on character.
+            if (_eventManager != null)
+                _eventManager.RemoveListener(EventName.OnWorldGenerated, SpawnPlayer);
+
+            base.OnControllerDestroy();
         }
 
         private void InitializePlayerControllers(GameObject playerInstance)

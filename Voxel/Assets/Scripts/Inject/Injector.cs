@@ -288,7 +288,6 @@ public class Injector
         return _injections.ContainsKey(t);
     }
     
-    // New method:
     public void DestroyAllServices()
     {
         foreach (var service in _services)

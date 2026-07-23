@@ -456,11 +456,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66a7c2f86ad667b40a85d9fa9a168c23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoxelWorld.World
+  _hierarchicalName: 
+  _parent: {fileID: 0}
   MapSizeInChunks: 6
   ChunkSize: 16
   ChunkHeight: 100
   ChunkPrefab: {fileID: 5899688019503250217, guid: 3763d4212b7a00f4bab64839a2b65ddc, type: 3}
-  PlayerSpawner: {fileID: 1840792187}
   TerrainGenerator: {fileID: 1766236563}
   WorldRules: {fileID: 11400000, guid: ab7700dab37cab6428dd16bd432a088c, type: 2}
   UseRandomSeed: 1
@@ -859,6 +860,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 217dcc78fde0eba48af7ddb3e1f91c64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Character.PlayerSpawner
+  _hierarchicalName: 
+  _parent: {fileID: 0}
   World: {fileID: 1012299050}
   PlayerPrefab: {fileID: 6806332029536266192, guid: 07cd666f5ccddf74cba5157adb0aad46, type: 3}
   SpawnHeightOffset: 2
@@ -920,6 +923,50 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 688806232}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1980504349
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1980504351}
+  - component: {fileID: 1980504350}
+  m_Layer: 0
+  m_Name: Inicializer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1980504350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980504349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45e7749348563c7468f6b1d32ed828fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::After.Main.GameInitializer
+--- !u!4 &1980504351
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980504349}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2064797369
 GameObject:
@@ -1029,6 +1076,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 1333446671}
   - {fileID: 688806232}
+  - {fileID: 1980504351}
   - {fileID: 1440252830}
   - {fileID: 1012299051}
   - {fileID: 1766236564}

@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Character;
+using After.Main;
 using UnityEngine;
 
 namespace VoxelWorld
 {
-    public class World : MonoBehaviour
+    public class World : Controller
     {
         [Header("Chunk Settings")]
         public int MapSizeInChunks = 6;
@@ -14,8 +14,6 @@ namespace VoxelWorld
         public int ChunkHeight = 100;
         public GameObject ChunkPrefab;
 
-        [Header("Player")]
-        public PlayerSpawner PlayerSpawner;
         [Header("Terrain Generation")]
         public TerrainGenerator TerrainGenerator;
 
@@ -31,6 +29,14 @@ namespace VoxelWorld
         private Vector2Int _worldOffset;
         Dictionary<Vector3Int, ChunkData> _chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>();
         Dictionary<Vector3Int, ChunkRenderer> _chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>();
+
+        [Inject] private MyEventManager _eventManager;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            Injector.Instance.InjectInto(this);
+        }
 
         public void GenerateWorld()
         {
@@ -69,7 +75,7 @@ namespace VoxelWorld
                 chunkRenderer.UpdateChunk(meshData);
             }
             
-            PlayerSpawner.SpawnPlayer();
+            _eventManager.DispatchEvent(EventName.OnWorldGenerated);
         }
 
         private void GenerateVoxels(ChunkData data)
