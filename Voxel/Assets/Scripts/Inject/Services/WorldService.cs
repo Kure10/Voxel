@@ -86,10 +86,32 @@ namespace VoxelWorld
             Chunk.SetBlock(chunkData, localPos, blockType);
             chunkData.ModifiedByThePlayer = true;
 
-            if (_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
-                renderer.UpdateChunk(Chunk.GetChunkMeshData(chunkData));
+            RefreshChunkMesh(chunkPos);
+            RefreshBoundaryNeighbors(chunkPos, localPos);
 
             return true;
+        }
+        
+        private void RefreshChunkMesh(Vector3Int chunkPos)
+        {
+            if (_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData) &&
+                _chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
+            {
+                renderer.UpdateChunk(Chunk.GetChunkMeshData(chunkData));
+            }
+        }
+        
+        private void RefreshBoundaryNeighbors(Vector3Int chunkPos, Vector3Int localPos)
+        {
+            if (localPos.x == 0)
+                RefreshChunkMesh(chunkPos + new Vector3Int(-ChunkSize, 0, 0));
+            else if (localPos.x == ChunkSize - 1)
+                RefreshChunkMesh(chunkPos + new Vector3Int(ChunkSize, 0, 0));
+
+            if (localPos.z == 0)
+                RefreshChunkMesh(chunkPos + new Vector3Int(0, 0, -ChunkSize));
+            else if (localPos.z == ChunkSize - 1)
+                RefreshChunkMesh(chunkPos + new Vector3Int(0, 0, ChunkSize));
         }
 
         public int GetSurfaceHeight(int worldX, int worldZ)
