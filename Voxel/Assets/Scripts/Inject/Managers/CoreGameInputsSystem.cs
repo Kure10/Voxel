@@ -11,10 +11,13 @@ namespace After.Main
         public event Action OnJumpPerformed;
 
         public event Action OnDigPerformed;
+
+        // Todo DeadCode for now
+        // In future we can add mine feature. Special tiles or something extra like trees . Differen mining logic than diq
         public event Action OnMineStarted;
         public event Action OnMineCanceled;
         public event Action OnBuildPerformed;
-        
+
         public event Action OnLeftMousePerformed;
         public event Action OnRightMousePerformed;
 
@@ -49,7 +52,7 @@ namespace After.Main
             _gameInputs.Player.Interact.performed += HandleBuildPerformed;
 
             _gameInputs.Player.Dig.performed += HandleDigPerformed;
-            
+
             _gameInputs.Player.MouseClick.performed += HandleOnMouseClick;
         }
 
@@ -69,7 +72,7 @@ namespace After.Main
             _gameInputs.Player.Interact.performed -= HandleBuildPerformed;
 
             _gameInputs.Player.Dig.performed -= HandleDigPerformed;
-            
+
             _gameInputs.Player.MouseClick.performed -= HandleOnMouseClick;
 
             _gameInputs.Player.Disable();
@@ -89,7 +92,7 @@ namespace After.Main
         private void HandleBuildPerformed(InputAction.CallbackContext ctx) => OnBuildPerformed?.Invoke();
 
         private void HandleDigPerformed(InputAction.CallbackContext ctx) => OnDigPerformed?.Invoke();
-        
+
         private void HandleOnMouseClick(InputAction.CallbackContext ctx)
         {
             if (ctx.control == Mouse.current.leftButton)
