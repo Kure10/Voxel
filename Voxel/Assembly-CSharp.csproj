@@ -49,9 +49,13 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\ChunkData.cs" />
     <Compile Include="Assets\Scripts\Inject\IManager.cs" />
+    <Compile Include="Assets\Scripts\Inject\Services\WorldService.cs" />
     <Compile Include="Assets\Scripts\BlockHelper.cs" />
+    <Compile Include="Assets\Scripts\Inject\Events\PlayerRemovedEvent.cs" />
     <Compile Include="Assets\Scripts\Inject\Managers\MyEventManager.cs" />
+    <Compile Include="Assets\Scripts\Inject\Inicializer\GameInitializer.cs" />
     <Compile Include="Assets\Scripts\ChunkRenderer.cs" />
+    <Compile Include="Assets\Scripts\Inject\Inicializer\BaseInitializer.cs" />
     <Compile Include="Assets\Scripts\Inject\IInjectable.cs" />
     <Compile Include="Assets\Scripts\Inject\Managers\CoreGameInputsSystem.cs" />
     <Compile Include="Assets\Scripts\Inject\GameContext.cs" />
@@ -60,7 +64,9 @@
     <Compile Include="Assets\Scripts\BlockType.cs" />
     <Compile Include="Assets\Scripts\Inject\Controller\Controller.cs" />
     <Compile Include="Assets\Scripts\BlockDataManager.cs" />
+    <Compile Include="Assets\Scripts\Inject\Events\PlayerAddedEvent.cs" />
     <Compile Include="Assets\Scripts\World.cs" />
+    <Compile Include="Assets\Scripts\Character\PlayerActions.cs" />
     <Compile Include="Assets\Scripts\Inject\Injector.cs" />
     <Compile Include="Assets\Scripts\WorldGenerator\NoiseSettingsSO.cs" />
     <Compile Include="Assets\Scripts\Character\PlayerSpawner.cs" />
@@ -70,7 +76,9 @@
     <Compile Include="Assets\Scripts\MeshData.cs" />
     <Compile Include="Assets\Scripts\Inject\Events\AbstractEvent.cs" />
     <Compile Include="Assets\Scripts\WorldRules\WorldRules.cs" />
+    <Compile Include="Assets\Scripts\Character\Character.cs" />
     <Compile Include="Assets\Scripts\WorldGenerator\TerrainGenerator.cs" />
+    <Compile Include="Assets\Scripts\Inject\Services\PlayerService.cs" />
     <Compile Include="Assets\Scripts\VoxelData\BlockDataSO.cs" />
     <Compile Include="Assets\Scripts\Inject\IService.cs" />
     <Compile Include="Assets\Scripts\Inject\Enums\EnumNames.cs" />

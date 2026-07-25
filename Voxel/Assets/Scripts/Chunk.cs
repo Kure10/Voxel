@@ -53,9 +53,9 @@ namespace VoxelWorld
                 int index = GetIndexFromPosition(chunkData, x, y, z);
                 return chunkData.Blocks[index];
             }
-            
-            return chunkData.WorldReference.GetBlockFromChunkCoordinates(chunkData, chunkData.WorldPosition.x + x,
-                chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
+
+            return chunkData.WorldReference.GetBlockFromChunkCoordinates(
+                chunkData.WorldPosition.x + x, chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
         }
 
         public static void SetBlock(ChunkData chunkData, Vector3Int localPosition, BlockType block)
@@ -70,6 +70,19 @@ namespace VoxelWorld
             {
                 throw new Exception("Need to ask World for appropiate chunk");
             }
+        }
+        
+        public static int AddBlockDamage(ChunkData chunkData, Vector3Int localPosition)
+        {
+            int index = GetIndexFromPosition(chunkData, localPosition.x, localPosition.y, localPosition.z);
+            chunkData.Damage[index]++;
+            return chunkData.Damage[index];
+        }
+
+        public static void ClearBlockDamage(ChunkData chunkData, Vector3Int localPosition)
+        {
+            int index = GetIndexFromPosition(chunkData, localPosition.x, localPosition.y, localPosition.z);
+            chunkData.Damage[index] = 0;
         }
 
         private static int GetIndexFromPosition(ChunkData chunkData, int x, int y, int z)
@@ -97,17 +110,6 @@ namespace VoxelWorld
         
         
             return meshData;
-        }
-
-        internal static Vector3Int ChunkPositionFromBlockCoords(World world, int x, int y, int z)
-        {
-            Vector3Int pos = new Vector3Int
-            {
-                x = Mathf.FloorToInt(x / (float)world.ChunkSize) * world.ChunkSize,
-                y = Mathf.FloorToInt(y / (float)world.ChunkHeight) * world.ChunkHeight,
-                z = Mathf.FloorToInt(z / (float)world.ChunkSize) * world.ChunkSize
-            };
-            return pos;
         }
     }
 }

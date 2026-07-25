@@ -21,33 +21,39 @@ MonoBehaviour:
     Side: {x: 0, y: 0}
     IsSolid: 0
     GeneratesCollider: 0
+    HitsToBreak: 3
   - BlockType: 1
     Up: {x: 7, y: 4}
     Down: {x: 7, y: 4}
     Side: {x: 7, y: 4}
     IsSolid: 1
     GeneratesCollider: 1
+    HitsToBreak: 1
   - BlockType: 0
     Up: {x: 8, y: 0}
     Down: {x: 8, y: 0}
     Side: {x: 8, y: 0}
     IsSolid: 0
     GeneratesCollider: 0
+    HitsToBreak: 1
   - BlockType: 2
     Up: {x: 8, y: 9}
     Down: {x: 8, y: 9}
     Side: {x: 8, y: 9}
     IsSolid: 1
     GeneratesCollider: 1
+    HitsToBreak: 3
   - BlockType: 3
     Up: {x: 3, y: 4}
     Down: {x: 3, y: 4}
     Side: {x: 3, y: 4}
     IsSolid: 1
     GeneratesCollider: 1
+    HitsToBreak: 1
   - BlockType: 5
     Up: {x: 7, y: 0}
     Down: {x: 7, y: 0}
     Side: {x: 7, y: 0}
     IsSolid: 0
     GeneratesCollider: 0
+    HitsToBreak: 3

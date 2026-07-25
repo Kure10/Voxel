@@ -10,9 +10,13 @@ namespace After.Main
         public event Action<Vector2> OnLook;
         public event Action OnJumpPerformed;
 
+        public event Action OnDigPerformed;
         public event Action OnMineStarted;
         public event Action OnMineCanceled;
         public event Action OnBuildPerformed;
+        
+        public event Action OnLeftMousePerformed;
+        public event Action OnRightMousePerformed;
 
         private InputSystem_Actions _gameInputs;
 
@@ -43,6 +47,10 @@ namespace After.Main
             _gameInputs.Player.Attack.canceled += HandleMineCanceled;
 
             _gameInputs.Player.Interact.performed += HandleBuildPerformed;
+
+            _gameInputs.Player.Dig.performed += HandleDigPerformed;
+            
+            _gameInputs.Player.MouseClick.performed += HandleOnMouseClick;
         }
 
         private void OnDisable()
@@ -60,6 +68,10 @@ namespace After.Main
 
             _gameInputs.Player.Interact.performed -= HandleBuildPerformed;
 
+            _gameInputs.Player.Dig.performed -= HandleDigPerformed;
+            
+            _gameInputs.Player.MouseClick.performed -= HandleOnMouseClick;
+
             _gameInputs.Player.Disable();
         }
 
@@ -75,5 +87,19 @@ namespace After.Main
         private void HandleMineCanceled(InputAction.CallbackContext ctx) => OnMineCanceled?.Invoke();
 
         private void HandleBuildPerformed(InputAction.CallbackContext ctx) => OnBuildPerformed?.Invoke();
+
+        private void HandleDigPerformed(InputAction.CallbackContext ctx) => OnDigPerformed?.Invoke();
+        
+        private void HandleOnMouseClick(InputAction.CallbackContext ctx)
+        {
+            if (ctx.control == Mouse.current.leftButton)
+            {
+                OnLeftMousePerformed?.Invoke();
+            }
+            else if (ctx.control == Mouse.current.rightButton)
+            {
+                OnRightMousePerformed?.Invoke();
+            }
+        }
     }
 }

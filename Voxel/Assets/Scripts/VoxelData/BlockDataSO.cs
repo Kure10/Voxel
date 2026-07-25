@@ -19,5 +19,6 @@ namespace VoxelWorld
         public Vector2Int Up, Down, Side;
         public bool IsSolid = true;
         public bool GeneratesCollider = true;
+        public int HitsToBreak = 3; // We can modify it for every block differently.
     }
 }

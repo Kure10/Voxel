@@ -365,6 +365,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ebe65dc5892f734a98f198085847101, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Character.Character
+  _hierarchicalName: 
+  _parent: {fileID: 0}
 --- !u!114 &7203474314620328707
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,3 +401,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Character.PlayerActions
   _hierarchicalName: 
   _parent: {fileID: 0}
+  PlayerCamera: {fileID: 8678623741638602216}
+  World: {fileID: 0}
+  InteractionRange: 6

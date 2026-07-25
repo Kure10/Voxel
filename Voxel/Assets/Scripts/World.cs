@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using After.Main;
 using UnityEngine;
 
@@ -8,69 +5,49 @@ namespace VoxelWorld
 {
     public class World : Controller
     {
+        [Inject] private WorldRules _worldRules;
+        [Inject] private WorldService _worldService;
+        [Inject] private MyEventManager _eventManager;
+        
         [Header("Chunk Settings")]
-        public int MapSizeInChunks = 6;
-        public int ChunkSize = 16;
-        public int ChunkHeight = 100;
         public GameObject ChunkPrefab;
 
         [Header("Terrain Generation")]
         public TerrainGenerator TerrainGenerator;
 
-        [Header("World Rules (height bands, water)")]
-        public WorldRules WorldRules;
-
         [Header("Seed")]
-        [Tooltip("If checked, a new random seed is picked every time you press Generate.")]
         public bool UseRandomSeed = true;
-        [Tooltip("Current seed. Untick 'Use Random Seed' and keep this value to reproduce this exact terrain.")]
         public int Seed;
-
-        private Vector2Int _worldOffset;
-        Dictionary<Vector3Int, ChunkData> _chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>();
-        Dictionary<Vector3Int, ChunkRenderer> _chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>();
-
-        [Inject] private MyEventManager _eventManager;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            Injector.Instance.InjectInto(this);
-        }
-
+        
         public void GenerateWorld()
         {
             if (UseRandomSeed)
-                Seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+                Seed = Random.Range(int.MinValue, int.MaxValue);
 
             System.Random seededRandom = new System.Random(Seed);
-            _worldOffset = new Vector2Int(seededRandom.Next(-100000, 100000), seededRandom.Next(-100000, 100000));
+            Vector2Int worldOffset = new Vector2Int(seededRandom.Next(-100000, 100000), seededRandom.Next(-100000, 100000));
 
-            _chunkDataDictionary.Clear();
-            foreach (ChunkRenderer chunk in _chunkDictionary.Values)
+            _worldService.Configure(TerrainGenerator);
+            _worldService.SetWorldOffset(worldOffset);
+            _worldService.ClearWorld();
+
+            for (int x = 0; x < _worldRules.MapSizeInChunks; x++)
             {
-                Destroy(chunk.gameObject);
-            }
-
-            _chunkDictionary.Clear();
-
-            for (int x = 0; x < MapSizeInChunks; x++)
-            {
-                for (int z = 0; z < MapSizeInChunks; z++)
+                for (int z = 0; z < _worldRules.MapSizeInChunks; z++)
                 {
-                    ChunkData data = new ChunkData(ChunkSize, ChunkHeight, this,
-                        new Vector3Int(x * ChunkSize, 0, z * ChunkSize));
+                    ChunkData data = new ChunkData(_worldRules.ChunkSize, _worldRules.ChunkHeight, _worldService,
+                        new Vector3Int(x * _worldRules.ChunkSize, 0, z * _worldRules.ChunkSize));
                     GenerateVoxels(data);
-                    _chunkDataDictionary.Add(data.WorldPosition, data);
+                    _worldService.RegisterChunkData(data);
                 }
             }
 
-            foreach (ChunkData data in _chunkDataDictionary.Values)
+            foreach (ChunkData data in _worldService.AllChunkData)
             {
                 MeshData meshData = Chunk.GetChunkMeshData(data);
                 GameObject chunkObject = Instantiate(ChunkPrefab, data.WorldPosition, Quaternion.identity);
                 ChunkRenderer chunkRenderer = chunkObject.GetComponent<ChunkRenderer>();
-                _chunkDictionary.Add(data.WorldPosition, chunkRenderer);
+                _worldService.RegisterChunkRenderer(data.WorldPosition, chunkRenderer);
                 chunkRenderer.InitializeChunk(data);
                 chunkRenderer.UpdateChunk(meshData);
             }
@@ -84,45 +61,20 @@ namespace VoxelWorld
             {
                 for (int z = 0; z < data.ChunkSize; z++)
                 {
-                    int groundPosition = TerrainGenerator.GetSurfaceHeight(data.WorldPosition.x + x,
-                        data.WorldPosition.z + z,
-                        ChunkHeight, _worldOffset);
+                    int groundPosition = _worldService.GetSurfaceHeight(data.WorldPosition.x + x, data.WorldPosition.z + z);
 
-                    for (int y = 0; y < ChunkHeight; y++)
+                    for (int y = 0; y < data.ChunkHeight; y++)
                     {
-                        BlockType voxelType = BlockType.Gray;
+                        BlockType voxelType;
                         if (y > groundPosition)
-                        {
-                            voxelType = y < WorldRules.WaterLevel ? BlockType.Water : BlockType.Air;
-                        }
+                            voxelType = y < _worldRules.WaterLevel ? BlockType.Water : BlockType.Air;
                         else
-                        {
-                            voxelType = WorldRules.GetSolidBlockType(y);
-                        }
+                            voxelType = _worldRules.GetSolidBlockType(y);
 
                         Chunk.SetBlock(data, new Vector3Int(x, y, z), voxelType);
                     }
                 }
             }
-        }
-
-        internal BlockType GetBlockFromChunkCoordinates(ChunkData chunkData, int x, int y, int z)
-        {
-            Vector3Int pos = Chunk.ChunkPositionFromBlockCoords(this, x, y, z);
-            ChunkData containerChunk = null;
-
-            _chunkDataDictionary.TryGetValue(pos, out containerChunk);
-
-            if (containerChunk == null)
-                return BlockType.Nothing;
-            Vector3Int blockInCHunkCoordinates =
-                Chunk.GetBlockInChunkCoordinates(containerChunk, new Vector3Int(x, y, z));
-            return Chunk.GetBlockFromChunkCoordinates(containerChunk, blockInCHunkCoordinates);
-        }
-        
-        public int GetSurfaceHeight(int worldX, int worldZ)
-        {
-            return TerrainGenerator.GetSurfaceHeight(worldX, worldZ, ChunkHeight, _worldOffset);
         }
     }
 }

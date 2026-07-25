@@ -1,4 +1,5 @@
 using UnityEngine;
+using VoxelWorld;
 
 namespace After.Main
 {
@@ -6,15 +7,17 @@ namespace After.Main
     public class GameContext : MonoBehaviour
     {
         public static GameContext Instance { get; private set; }
-
-        //  [Header("Global settings:")]
-
+        
+        [Header("Global settings:")]
+        [SerializeField] private WorldRules _worldRules;
         //[SerializeField] private SoundSettings _soundSettings;
 
         [Header("Managers:")]
         public MyEventManager MyEventManager;
         public CoreGameInputsSystem InputsSystem;
 
+        public WorldRules WorldRules => _worldRules;
+        
         private void Awake()
         {
             Injector injector = Injector.Instance;
@@ -39,6 +42,8 @@ namespace After.Main
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
             injector.MapAndInjectInto(injector);
+            
+            injector.MapValue<WorldRules>(_worldRules);
             // injector.MapValue<ContextSettings>(_contextSettings);
             
             InputsSystem = injector.TryMapManager(InputsSystem);
@@ -46,7 +51,7 @@ namespace After.Main
 
 
             injector.TryMapService(new PlayerService());
-
+            injector.TryMapService(new WorldService());
             //
             // injector.TryMapService(new EconomyService());
             // injector.TryMapService(new SpecialistService());

@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 222a0dfbe07a6ea43a46193cd16d8555, type: 3}
   m_Name: WorldRules
   m_EditorClassIdentifier: Assembly-CSharp::VoxelWorld.WorldRules
+  ChunkSize: 16
+  ChunkHeight: 36
+  MapSizeInChunks: 6
+  MaxTerrainHeight: 100
   WaterLevel: 5
   GrayLevelsAboveWater: 2
   GreenLevels: 5
+  MinDigHeight: 0

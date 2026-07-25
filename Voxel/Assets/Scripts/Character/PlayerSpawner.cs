@@ -5,9 +5,10 @@ namespace VoxelWorld
 {
     public class PlayerSpawner : Controller
     {
+        [Inject] private WorldRules _worldRules;
+        [Inject] private WorldService _worldService;
         [Inject] private MyEventManager _eventManager;
-
-        public World World;
+        
         public GameObject PlayerPrefab;
 
         [Tooltip("Extra height above ground/water to avoid spawning inside terrain.")]
@@ -23,11 +24,12 @@ namespace VoxelWorld
 
         private void SpawnPlayer()
         {
-            int centerX = (World.MapSizeInChunks * World.ChunkSize) / 2;
-            int centerZ = (World.MapSizeInChunks * World.ChunkSize) / 2;
+            // in SpawnPlayer():
+            int centerX = (_worldRules.MapSizeInChunks * _worldRules.ChunkSize) / 2;
+            int centerZ = (_worldRules.MapSizeInChunks * _worldRules.ChunkSize) / 2;
 
-            int groundHeight = World.GetSurfaceHeight(centerX, centerZ);
-            int waterLevel = World.WorldRules.WaterLevel;
+            int groundHeight = _worldService.GetSurfaceHeight(centerX, centerZ);
+            int waterLevel = _worldRules.WaterLevel;
 
             int spawnHeight = Mathf.Max(groundHeight, waterLevel) + Mathf.CeilToInt(SpawnHeightOffset);
             Vector3 spawnPosition = new Vector3(centerX, spawnHeight, centerZ);

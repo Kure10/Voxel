@@ -6,11 +6,12 @@ namespace VoxelWorld
     {
         public NoiseSettingsSO NoiseSettings;
 
-        public int GetSurfaceHeight(int worldX, int worldZ, int chunkHeight, Vector2Int worldOffset)
+        public int GetSurfaceHeight(int worldX, int worldZ, int maxTerrainHeight, int chunkHeight, Vector2Int worldOffset)
         {
             float noiseValue = OctavePerlin(worldX + worldOffset.x, worldZ + worldOffset.y);
             noiseValue = Redistribute(noiseValue);
-            return Mathf.Clamp(Mathf.RoundToInt(noiseValue * chunkHeight), 0, chunkHeight - 1);
+            int rawHeight = Mathf.RoundToInt(noiseValue * maxTerrainHeight);
+            return Mathf.Clamp(rawHeight, 0, chunkHeight - 1);
         }
 
         private float OctavePerlin(float x, float z)

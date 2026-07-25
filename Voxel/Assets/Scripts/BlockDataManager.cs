@@ -16,6 +16,8 @@ namespace VoxelWorld
 
         private void Awake()
         {
+            BlockTextureDataDictionary.Clear();
+            
             foreach (var item in TextureData.TextureDataList)
             {
                 if (BlockTextureDataDictionary.ContainsKey(item.BlockType) == false)
