@@ -11,6 +11,9 @@ namespace VoxelWorld
         Gray = 1, // deep layer - rock, slowest to mine
         Green = 2, // walkable layer - grass, normal mine speed
         White = 3, // high layer - snow, fastest to mine
-        Water = 5 // high layer - snow, fastest to mine
+        Water = 5, // high layer - snow, fastest to mine
+        GreenFirst = 6, // First level when start green;
+        GreenLast = 7, // Last level when finish green;
+        Ice = 8 // Lasts level of white
     }
 }

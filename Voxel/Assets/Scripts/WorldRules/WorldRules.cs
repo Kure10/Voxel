@@ -26,6 +26,7 @@ namespace VoxelWorld
         [Header("Height Bands (levels above WaterLevel)")]
         public int GrayLevelsAboveWater = 7;
         public int GreenLevels = 20;
+        public int WhiteLevels = 3;
 
         [Header("Dig/Build Limits")]
         public int MinDigHeight = 0;
@@ -36,12 +37,19 @@ namespace VoxelWorld
         {
             int grayMaxHeight = WaterLevel + GrayLevelsAboveWater;
             int greenMaxHeight = grayMaxHeight + GreenLevels;
+            int whiteMaxHeight = greenMaxHeight + WhiteLevels;
 
             if (y <= grayMaxHeight)
                 return BlockType.Gray;
-            if (y <= greenMaxHeight)
+            if (y == grayMaxHeight + 1)
+                return BlockType.GreenFirst;
+            if (y == greenMaxHeight)
+                return BlockType.GreenLast;
+            if (y <= greenMaxHeight - 1)
                 return BlockType.Green;
-            return BlockType.White;
+            if (y <= whiteMaxHeight)
+                return BlockType.White;
+            return BlockType.Ice;
         }
         
         private void OnEnable()
