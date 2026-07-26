@@ -5,11 +5,9 @@ namespace VoxelWorld
 {
     public class PlayerSpawner : Controller
     {
+        [Inject] private MyEventManager _eventManager;
         [Inject] private WorldRules _worldRules;
         [Inject] private WorldService _worldService;
-        [Inject] private MyEventManager _eventManager;
-        
-        public GameObject PlayerPrefab;
 
         [Tooltip("Extra height above ground/water to avoid spawning inside terrain.")]
         public float SpawnHeightOffset = 2f;
@@ -24,9 +22,8 @@ namespace VoxelWorld
 
         private void SpawnPlayer()
         {
-            // in SpawnPlayer():
-            int centerX = (_worldRules.MapSizeInChunks * _worldRules.ChunkSize) / 2;
-            int centerZ = (_worldRules.MapSizeInChunks * _worldRules.ChunkSize) / 2;
+            int centerX = 0;
+            int centerZ = 0;
 
             int groundHeight = _worldService.GetSurfaceHeight(centerX, centerZ);
             int waterLevel = _worldRules.WaterLevel;
@@ -36,7 +33,7 @@ namespace VoxelWorld
 
             if (_spawnedPlayer == null)
             {
-                _spawnedPlayer = Instantiate(PlayerPrefab, spawnPosition, Quaternion.identity);
+                _spawnedPlayer = Instantiate(_worldRules.CharacterPrefab, spawnPosition, Quaternion.identity);
                 InitializePlayerControllers(_spawnedPlayer);
 
                 var character = _spawnedPlayer.GetComponentInChildren<Character.Character>();
@@ -60,9 +57,6 @@ namespace VoxelWorld
 
         private void InitializePlayerControllers(GameObject playerInstance)
         {
-            // Any Controller (PlayerController, future mining/building controllers, etc.)
-            // needs [Inject] fields filled and Initialize() called explicitly,
-            // since Instantiate() alone doesn't go through the Injector.
             foreach (var controller in playerInstance.GetComponentsInChildren<Controller>(true))
             {
                 Injector.Instance.InjectInto(controller);

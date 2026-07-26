@@ -225,6 +225,7 @@ GameObject:
   - component: {fileID: -3750367069753084108}
   - component: {fileID: 7203474314620328707}
   - component: {fileID: -8645677535911987355}
+  - component: {fileID: 3503378065908598240}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -402,5 +403,19 @@ MonoBehaviour:
   _hierarchicalName: 
   _parent: {fileID: 0}
   PlayerCamera: {fileID: 8678623741638602216}
-  World: {fileID: 0}
   InteractionRange: 6
+  BlockToPlace: 1
+--- !u!114 &3503378065908598240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6806332029536266192}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c51d965dfa8aeb47b5bd1aad726ae45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VoxelWorld.PlayerChunkStreamer
+  _hierarchicalName: 
+  _parent: {fileID: 0}
