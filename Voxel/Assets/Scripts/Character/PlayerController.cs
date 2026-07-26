@@ -7,7 +7,8 @@ namespace Character
     public class PlayerController : Controller
     {
         [Inject] private CoreGameInputsSystem _coreGameInputsSystem;
-
+        [Inject] private MyEventManager _eventManager;
+        
         [Header("References")]
         public Camera PlayerCamera;
 
@@ -37,6 +38,9 @@ namespace Character
             _coreGameInputsSystem.OnMove += HandleMove;
             _coreGameInputsSystem.OnLook += HandleLook;
             _coreGameInputsSystem.OnJumpPerformed += HandleJump;
+            
+            _eventManager.AddListener(EventName.OnWorldLoadStarted, Freeze);
+            _eventManager.AddListener(EventName.OnWorldLoadFinished, Unfreeze);
         }
 
         // Look is applied immediately, event-driven — no caching, no polling.
@@ -75,14 +79,36 @@ namespace Character
 
             _controller.Move(velocity * Time.deltaTime);
         }
+        
+        public void Freeze()
+        {
+            _moveInput = Vector2.zero;
+            _jumpRequested = false;
+            _verticalVelocity = 0f; // avoid a leftover fall-speed jolt on unfreeze
+            _controller.enabled = false; // lets SaveService set transform.position cleanly, no collision fighting
+            enabled = false; // stops Update() entirely — no movement/gravity while frozen
+        }
+
+        public void Unfreeze()
+        {
+            _controller.enabled = true;
+            enabled = true;
+        }
 
         protected override void OnControllerDestroy()
         {
             base.OnControllerDestroy();
-            if (_coreGameInputsSystem == null) return;
-            _coreGameInputsSystem.OnMove -= HandleMove;
-            _coreGameInputsSystem.OnLook -= HandleLook;
-            _coreGameInputsSystem.OnJumpPerformed -= HandleJump;
+            if (_coreGameInputsSystem != null)
+            {
+                _coreGameInputsSystem.OnMove -= HandleMove;
+                _coreGameInputsSystem.OnLook -= HandleLook;
+                _coreGameInputsSystem.OnJumpPerformed -= HandleJump;
+            }
+            if (_eventManager != null)
+            {
+                _eventManager.RemoveListener(EventName.OnWorldLoadStarted, Freeze);
+                _eventManager.RemoveListener(EventName.OnWorldLoadFinished, Unfreeze);
+            }
         }
     }
 }

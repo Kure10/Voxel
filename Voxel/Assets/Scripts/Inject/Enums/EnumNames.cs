@@ -5,5 +5,7 @@ namespace After.Main
     public enum EventName
     {
         OnWorldGenerated,
+        OnWorldLoadStarted,
+        OnWorldLoadFinished,
     }
 }

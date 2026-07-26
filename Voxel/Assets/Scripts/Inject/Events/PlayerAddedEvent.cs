@@ -1,12 +1,13 @@
 using After.Main;
+using Character;
 
-namespace Character
+namespace After.Main
 {
     public class PlayerAddedEvent : AbstractEvent
     {
-        public Character Player { get; }
+        public Character.Character Player { get; }
 
-        public PlayerAddedEvent(Character player)
+        public PlayerAddedEvent(Character.Character player)
         {
             Player = player;
         }
