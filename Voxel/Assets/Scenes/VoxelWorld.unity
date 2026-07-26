@@ -288,7 +288,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14444b02b509ca44d800bc06be896de7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoxelWorld.UI.LoadingSpinner
-  RotationSpeed: 161.2
+  RotationSpeed: 150
   Clockwise: 1
 --- !u!114 &582212653
 MonoBehaviour:
@@ -805,7 +805,8 @@ MonoBehaviour:
   _hierarchicalName: 
   _parent: {fileID: 0}
   PanelCanvasGroup: {fileID: 2053226008}
-  FadeDuration: 0.3
+  FadeDuration: 1
+  IntroFadeDuration: 4
   SavedTextObject: {fileID: 1674767725}
   SavedTextDuration: 3
 --- !u!1 &1674767725
@@ -842,8 +843,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -143.3, y: 46.3}
-  m_SizeDelta: {x: 239.0017, y: 50}
+  m_AnchoredPosition: {x: -164.60614, y: 48.667328}
+  m_SizeDelta: {x: 281.614, y: 54.7347}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1674767727
 MonoBehaviour:
@@ -865,7 +866,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Saving game
+  m_text: Saving game . . .
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -892,7 +893,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34.6
+  m_fontSize: 32.8
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

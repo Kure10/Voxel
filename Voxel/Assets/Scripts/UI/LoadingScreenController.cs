@@ -9,15 +9,15 @@ namespace VoxelWorld.UI
         [Inject] private MyEventManager _eventManager;
 
         public CanvasGroup PanelCanvasGroup;
-        public float FadeDuration = 0.3f;
-        [Space]
-        public GameObject SavedTextObject;
-        public float SavedTextDuration = 3f;
+        public float FadeDuration = 1f;
 
         [Header("Intro")]
         public float IntroFadeDuration = 2f;
-        
-        private Coroutine _savedTextRoutine;
+
+        [Header("Saved Text")]
+        public GameObject SavedTextObject;
+        public float SavedTextDuration = 3f;
+
         private Coroutine _fadeRoutine;
 
         public override void Initialize()
@@ -31,15 +31,7 @@ namespace VoxelWorld.UI
 
             PanelCanvasGroup.gameObject.SetActive(true);
             PanelCanvasGroup.alpha = 1f;
-            _fadeRoutine = StartCoroutine(FadeTo(0f, IntroFadeDuration, () => PanelCanvasGroup.gameObject.SetActive(false)));
-        }
-        
-        private void HandleWorldSaved()
-        {
-            if (_savedTextRoutine != null)
-                StopCoroutine(_savedTextRoutine);
-
-            _savedTextRoutine = StartCoroutine(ShowSavedTextRoutine());
+            StartCoroutine(FadeTo(0f, IntroFadeDuration, () => PanelCanvasGroup.gameObject.SetActive(false)));
         }
 
         private void HandleLoadStarted()
@@ -48,7 +40,7 @@ namespace VoxelWorld.UI
                 StopCoroutine(_fadeRoutine);
 
             PanelCanvasGroup.gameObject.SetActive(true);
-            _fadeRoutine = StartCoroutine(FadeTo(1f, FadeDuration));
+            PanelCanvasGroup.alpha = 1f;
         }
 
         private void HandleLoadFinished()
@@ -58,7 +50,17 @@ namespace VoxelWorld.UI
 
             _fadeRoutine = StartCoroutine(FadeTo(0f, FadeDuration, () => PanelCanvasGroup.gameObject.SetActive(false)));
         }
-        
+
+        private void HandleWorldSaved()
+        {
+            if (_savedTextRoutine != null)
+                StopCoroutine(_savedTextRoutine);
+
+            _savedTextRoutine = StartCoroutine(ShowSavedTextRoutine());
+        }
+
+        private Coroutine _savedTextRoutine;
+
         private IEnumerator ShowSavedTextRoutine()
         {
             SavedTextObject.SetActive(true);
@@ -85,8 +87,7 @@ namespace VoxelWorld.UI
         protected override void OnControllerDestroy()
         {
             base.OnControllerDestroy();
-            if (_eventManager == null) 
-                return;
+            if (_eventManager == null) return;
             _eventManager.RemoveListener(EventName.OnWorldLoadStarted, HandleLoadStarted);
             _eventManager.RemoveListener(EventName.OnWorldLoadFinished, HandleLoadFinished);
             _eventManager.RemoveListener(EventName.OnWorldSaved, HandleWorldSaved);
