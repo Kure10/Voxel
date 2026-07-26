@@ -7,5 +7,6 @@ namespace After.Main
         OnWorldGenerated,
         OnWorldLoadStarted,
         OnWorldLoadFinished,
+        OnWorldSaved,
     }
 }

@@ -72,6 +72,7 @@ namespace VoxelWorld
             });
 
             Debug.Log($"World saved: {modifiedChunks.Count} modified chunks.");
+            _eventManager.DispatchEvent(EventName.OnWorldSaved);
         }
 
         public async UniTask LoadGame()
