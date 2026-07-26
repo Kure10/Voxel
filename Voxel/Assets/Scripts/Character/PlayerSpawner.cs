@@ -38,7 +38,7 @@ namespace VoxelWorld
 
                 var character = _spawnedPlayer.GetComponentInChildren<Character.Character>();
                 if (character != null)
-                    _eventManager.DispatchEvent(new Character.PlayerAddedEvent(character));
+                    _eventManager.DispatchEvent(new PlayerAddedEvent(character));
             }
             else
             {
