@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -9,6 +10,8 @@ namespace VoxelWorld
     {
         [Inject] private WorldRules _worldRules;
 
+        private readonly ConcurrentDictionary<Vector3Int, BlockType[]> _pendingSavedChunks = new();
+        
         private readonly ConcurrentDictionary<Vector3Int, ChunkData> _chunkDataDictionary = new();
         private readonly Dictionary<Vector3Int, ChunkRenderer> _chunkDictionary = new();
         private readonly HashSet<Vector3Int> _loadingChunks = new();
@@ -16,6 +19,8 @@ namespace VoxelWorld
         private TerrainGenerator _terrainGenerator;
         private Vector2Int _worldOffset;
         private ChunkPool _chunkPool;
+        
+        public int CurrentSeed { get; private set; }
         public int ChunkSize => _worldRules.ChunkSize;
         public int ChunkHeight => _worldRules.ChunkHeight;
         public IEnumerable<Vector3Int> LoadedChunkPositions => _chunkDictionary.Keys;
@@ -23,6 +28,7 @@ namespace VoxelWorld
         public void Init() { }
         public void Destroy() { }
         
+        public void SetCurrentSeed(int seed) => CurrentSeed = seed;
         public void Configure(TerrainGenerator terrainGenerator)
         {
             _terrainGenerator = terrainGenerator;
@@ -75,8 +81,23 @@ namespace VoxelWorld
             {
                 if (data == null)
                 {
-                    data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos);
-                    GenerateVoxels(data);
+                    if (_pendingSavedChunks.TryRemove(chunkPos, out BlockType[] savedBlocks))
+                    {
+                        // Restoring a chunk from a save file — reuse the saved block array, mark as modified
+                        // so it's never silently discarded/regenerated later.
+                        data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos)
+                        {
+                            Blocks = savedBlocks,
+                            ModifiedByThePlayer = true
+                        };
+                    }
+                    else
+                    {
+                        // No save data for this position — generate fresh from noise, as usual.
+                        data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos);
+                        GenerateVoxels(data);
+                    }
+
                     _chunkDataDictionary[chunkPos] = data;
                 }
 
@@ -90,7 +111,7 @@ namespace VoxelWorld
             chunkRenderer.UpdateChunk(meshData);
             _chunkDictionary[chunkPos] = chunkRenderer;
 
-            RefreshLoadedNeighbors(chunkPos); // fixes boundary faces on already-loaded neighbors
+            RefreshLoadedNeighbors(chunkPos);
 
             _loadingChunks.Remove(chunkPos);
         }
@@ -223,5 +244,14 @@ namespace VoxelWorld
             Vector3Int localPos = Chunk.GetBlockInChunkCoordinates(chunkData, worldPos);
             Chunk.ClearBlockDamage(chunkData, localPos);
         }
+        
+        public void SetPendingSavedChunks(IEnumerable<(Vector3Int position, BlockType[] blocks)> savedChunks)
+        {
+            _pendingSavedChunks.Clear();
+            foreach (var (position, blocks) in savedChunks)
+                _pendingSavedChunks[position] = blocks;
+        }
+        
+        public IEnumerable<ChunkData> GetModifiedChunks() => _chunkDataDictionary.Values.Where(c => c.ModifiedByThePlayer);
     }
 }

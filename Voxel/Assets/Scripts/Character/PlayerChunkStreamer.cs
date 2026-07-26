@@ -20,6 +20,7 @@ namespace VoxelWorld
         {
             base.Initialize();
             _eventManager.AddListener<PlayerAddedEvent>(OnPlayerAdded);
+            _eventManager.AddListener(EventName.OnWorldGenerated, ForceRestream);
         }
 
         private void OnPlayerAdded(PlayerAddedEvent e)
@@ -70,12 +71,20 @@ namespace VoxelWorld
                     _worldService.UnloadChunk(loadedChunkPos);
             }
         }
+        
+        private void ForceRestream()
+        {
+            _hasStreamedOnce = false;
+        }
 
         protected override void OnControllerDestroy()
         {
             base.OnControllerDestroy();
             if (_eventManager != null)
+            {
                 _eventManager.RemoveListener<PlayerAddedEvent>(OnPlayerAdded);
+                _eventManager.RemoveListener(EventName.OnWorldGenerated, ForceRestream);
+            }
         }
     }
 }

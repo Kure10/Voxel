@@ -17,10 +17,16 @@ namespace VoxelWorld
         [Inject] private WorldService _worldService;
         [Inject] private MyEventManager _eventManager;
 
-        //For Button
-        public void GenerateWorld() => GenerateWorldAsync().Forget();
         
-        private async UniTaskVoid GenerateWorldAsync()
+        public override void Initialize()
+        {
+            base.Initialize();
+            _eventManager.AddListener<LoadWorldEvent>(OnLoadWorldRequested);
+        }
+        //For Button
+        public UniTask GenerateWorld() => GenerateWorldAsync();
+        
+        private async UniTask  GenerateWorldAsync()
         {
             if (UseRandomSeed)
                 Seed = Random.Range(int.MinValue, int.MaxValue);
@@ -35,7 +41,27 @@ namespace VoxelWorld
             // Load the origin chunk first so the player has solid ground the instant they spawn.
             await _worldService.LoadChunkAsync(Vector3Int.zero);
 
+            _worldService.SetCurrentSeed(Seed);
             _eventManager.DispatchEvent(EventName.OnWorldGenerated);
+        }
+        
+        private void OnLoadWorldRequested(LoadWorldEvent e)
+        {
+            GenerateLoadWorld(e.Seed).Forget();
+        }
+        
+        public UniTask GenerateLoadWorld(int seed)
+        {
+            UseRandomSeed = false;
+            Seed = seed;
+            return GenerateWorld();
+        }
+        
+        protected override void OnControllerDestroy()
+        {
+            base.OnControllerDestroy();
+            if (_eventManager != null)
+                _eventManager.RemoveListener<LoadWorldEvent>(OnLoadWorldRequested);
         }
     }
 }

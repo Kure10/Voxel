@@ -20,6 +20,9 @@ namespace After.Main
 
         public event Action OnLeftMousePerformed;
         public event Action OnRightMousePerformed;
+        
+        public event Action OnSaveRequested;
+        public event Action OnLoadRequested;
 
         private InputSystem_Actions _gameInputs;
 
@@ -54,6 +57,9 @@ namespace After.Main
             _gameInputs.Player.Dig.performed += HandleDigPerformed;
 
             _gameInputs.Player.MouseClick.performed += HandleOnMouseClick;
+            
+            _gameInputs.Player.Save.performed += HandleSavePerformed;
+            _gameInputs.Player.Load.performed += HandleLoadPerformed;
         }
 
         private void OnDisable()
@@ -74,6 +80,9 @@ namespace After.Main
             _gameInputs.Player.Dig.performed -= HandleDigPerformed;
 
             _gameInputs.Player.MouseClick.performed -= HandleOnMouseClick;
+            
+            _gameInputs.Player.Save.performed -= HandleSavePerformed;
+            _gameInputs.Player.Load.performed -= HandleLoadPerformed;
 
             _gameInputs.Player.Disable();
         }
@@ -92,6 +101,9 @@ namespace After.Main
         private void HandleBuildPerformed(InputAction.CallbackContext ctx) => OnBuildPerformed?.Invoke();
 
         private void HandleDigPerformed(InputAction.CallbackContext ctx) => OnDigPerformed?.Invoke();
+        
+        private void HandleSavePerformed(InputAction.CallbackContext ctx) => OnSaveRequested?.Invoke();
+        private void HandleLoadPerformed(InputAction.CallbackContext ctx) => OnLoadRequested?.Invoke();
 
         private void HandleOnMouseClick(InputAction.CallbackContext ctx)
         {
