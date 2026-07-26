@@ -78,3 +78,10 @@ MonoBehaviour:
     IsSolid: 1
     GeneratesCollider: 1
     HitsToBreak: 5
+  - BlockType: 9
+    Up: {x: 3, y: 5}
+    Down: {x: 3, y: 5}
+    Side: {x: 3, y: 5}
+    IsSolid: 1
+    GeneratesCollider: 1
+    HitsToBreak: 2

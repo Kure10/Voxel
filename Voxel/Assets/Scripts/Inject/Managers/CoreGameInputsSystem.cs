@@ -23,6 +23,9 @@ namespace After.Main
         
         public event Action OnSaveRequested;
         public event Action OnLoadRequested;
+        
+        public event Action OnHotbarPrevious;
+        public event Action OnHotbarNext;
 
         private InputSystem_Actions _gameInputs;
 
@@ -60,6 +63,9 @@ namespace After.Main
             
             _gameInputs.Player.Save.performed += HandleSavePerformed;
             _gameInputs.Player.Load.performed += HandleLoadPerformed;
+            
+            _gameInputs.Player.HotbarPrevious.performed += HandleHotbarPrevious;
+            _gameInputs.Player.HotbarNext.performed += HandleHotbarNext;
         }
 
         private void OnDisable()
@@ -83,6 +89,9 @@ namespace After.Main
             
             _gameInputs.Player.Save.performed -= HandleSavePerformed;
             _gameInputs.Player.Load.performed -= HandleLoadPerformed;
+            
+            _gameInputs.Player.HotbarPrevious.performed -= HandleHotbarPrevious;
+            _gameInputs.Player.HotbarNext.performed -= HandleHotbarNext;
 
             _gameInputs.Player.Disable();
         }
@@ -104,6 +113,9 @@ namespace After.Main
         
         private void HandleSavePerformed(InputAction.CallbackContext ctx) => OnSaveRequested?.Invoke();
         private void HandleLoadPerformed(InputAction.CallbackContext ctx) => OnLoadRequested?.Invoke();
+        
+        private void HandleHotbarPrevious(InputAction.CallbackContext ctx) => OnHotbarPrevious?.Invoke();
+        private void HandleHotbarNext(InputAction.CallbackContext ctx) => OnHotbarNext?.Invoke();
 
         private void HandleOnMouseClick(InputAction.CallbackContext ctx)
         {

@@ -9,18 +9,21 @@ namespace Character
         [Inject] private CoreGameInputsSystem _coreGameInputsSystem;
         [Inject] private WorldService _worldService;
         [Inject] private WorldRules _worldRules;
+        [Inject] private MyEventManager _eventManager;
 
         [Header("References")]
         public Camera PlayerCamera;
 
         [Header("Interaction")]
         public float InteractionRange = 6f;
-        public BlockType BlockToPlace = BlockType.Gray;
-
+        
         [Header("Placement Preview")]
         public GameObject PlacementPreviewPrefab;
 
         private GameObject _placementPreviewInstance;
+        
+        // matches HotbarController's default slot 0 until the first event arrives
+        private BlockType _selectedBlockType = BlockType.Gray; 
 
         public override void Initialize()
         {
@@ -29,7 +32,8 @@ namespace Character
             _coreGameInputsSystem.OnDigPerformed += HandleDigPerformed;
             _coreGameInputsSystem.OnLeftMousePerformed += HandleDigPerformed;
             _coreGameInputsSystem.OnRightMousePerformed += HandleBuildPerformed;
-
+            _eventManager.AddListener<HotbarSelectionChangedEvent>(HandleHotbarSelectionChanged);
+            
             _placementPreviewInstance = Instantiate(PlacementPreviewPrefab);
             _placementPreviewInstance.SetActive(false);
         }
@@ -57,6 +61,11 @@ namespace Character
 
             _placementPreviewInstance.transform.position = placePos;
             _placementPreviewInstance.SetActive(true);
+        }
+        
+        private void HandleHotbarSelectionChanged(HotbarSelectionChangedEvent e)
+        {
+            _selectedBlockType = e.SelectedBlockType;
         }
 
         private void HandleDigPerformed()
@@ -96,7 +105,7 @@ namespace Character
 
             // TODO: currently overwrites whatever block already occupies placePos (including solid
             // blocks, not just Air). Consider checking GetBlockAtWorldPosition == Air before placing.
-            _worldService.TrySetBlockAtWorldPosition(placePos, BlockToPlace);
+            _worldService.TrySetBlockAtWorldPosition(placePos, _selectedBlockType);
         }
 
         private bool TryRaycastCenterScreen(out RaycastHit hit)
@@ -109,6 +118,8 @@ namespace Character
         {
             base.OnControllerDestroy();
 
+            _eventManager.RemoveListener<HotbarSelectionChangedEvent>(HandleHotbarSelectionChanged);
+            
             if (_placementPreviewInstance != null)
                 Destroy(_placementPreviewInstance);
 
