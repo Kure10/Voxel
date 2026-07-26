@@ -5,14 +5,20 @@ namespace VoxelWorld
     [CreateAssetMenu(fileName = "WorldRules", menuName = "Data/World Rules")]
     public class WorldRules : ScriptableObject
     {
-        [Header("Chunk Dimensions")]
+        [Header("Player")]
+        public GameObject CharacterPrefab;
+        [Header("Chunk Settings")]
+        public GameObject ChunkPrefab;
         public int ChunkSize = 16;
         public int ChunkHeight = 36;
-        public int MapSizeInChunks = 6;
+        
+        [Header("Streaming")]
+        public int ViewDistanceInChunks = 6;
 
         [Header("Terrain")]
         [Tooltip("Amplitude the noise scales into — how tall hills get. Independent of ChunkHeight.")]
         public int MaxTerrainHeight = 100;
+        public int MapSizeInChunks = 6;
 
         [Header("Water")]
         public int WaterLevel = 50;

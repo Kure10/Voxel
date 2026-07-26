@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using After.Main;
 using UnityEngine;
 using VoxelWorld;
 
 namespace VoxelWorld
 {
-    public class BlockDataManager : MonoBehaviour
+    public class BlockDataManager : MonoBehaviour , IManager
     {
         public static float TextureOffset = 0.001f;
         public static float TileSizeX, TileSizeY;
@@ -14,7 +15,7 @@ namespace VoxelWorld
 
         public BlockDataSO TextureData;
 
-        private void Awake()
+        public void Initialize()
         {
             BlockTextureDataDictionary.Clear();
             
