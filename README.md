@@ -4,11 +4,11 @@ Malý sandbox ve stylu Minecraftu postavený v Unity 6 (URP), zaměřený spíš
 
 ## Technická poznámka
 
-v1 — výchozí rozhodnutí
+v1 — výchozí rozhodnutí (do 7 dnů)
 
 Kdybych měl víc času, zvolil bych DOTS (ECS + Burst) — pro voxelový svět je to dlouhodobě výkonnější řešení. Vzhledem k týdennímu časovému limitu jsem ale zvolil klasický přístup s MonoBehaviour a ručně generovanými meshemi (MeshData, Chunk, ChunkRenderer), doplněný o multithreadové generování chunků (UniTask) a object pooling, abych alespoň částečně pokryl výkonnostní nároky bez plného přechodu na DOTS. DOTS verzi plánuji jako samostatný navazující projekt.
 
-v2 — cílené výkonnostní optimalizace
+v2 — cílené výkonnostní optimalizace (7dnů ++)
 
 Po prvním kole profilování jsem přidal Unity Job System + Burst Compiler tam, kde to šlo bez zásahu do zbytku architektury (tj. bez plného přechodu na DOTS/ECS): generování voxelů chunku (GenerateVoxelsJob, IJobParallelFor přes sloupce chunku, Unity.Mathematics.noise místo Mathf.PerlinNoise) teď běží multithreadově a Burst-kompilované místo jako obyčejný C# na jednom vlákně z UniTask thread poolu. Napojení na zbytek async pipeline řeší malá JobHandleExtensions.ToUniTask() extension metoda, díky které lze na JobHandle čekat přes await bez blokování hlavního vlákna.
 
