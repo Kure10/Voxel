@@ -27,6 +27,10 @@ namespace VoxelWorld
         public int ChunkHeight => _worldRules.ChunkHeight;
         public IEnumerable<Vector3Int> LoadedChunkPositions => _chunkDictionary.Keys;
 
+        // How many chunks are currently mid-flight (job scheduled and/or awaiting meshing).
+        // PlayerChunkStreamer polls this to know whether it has budget to start more loads.
+        public int LoadingChunkCount => _loadingChunks.Count;
+
         public void Init() { }
         public void Destroy() { }
 
@@ -70,7 +74,9 @@ namespace VoxelWorld
             return new Vector3Int(Mathf.FloorToInt(worldPos.x / ChunkSize), 0, Mathf.FloorToInt(worldPos.z / ChunkSize));
         }
 
-        public async UniTask LoadChunkAsync(Vector3Int chunkPos)
+        public bool IsChunkLoaded(Vector3Int chunkPos) => _chunkDictionary.ContainsKey(chunkPos);
+
+        public async UniTask LoadChunkAsync(Vector3Int chunkPos, bool needsCollider)
         {
             if (_chunkDictionary.ContainsKey(chunkPos) || _loadingChunks.Contains(chunkPos))
                 return;
@@ -103,19 +109,56 @@ namespace VoxelWorld
 
             // Meshing still goes through the .NET thread pool for now — it depends on
             // neighbouring chunks' data (via Chunk.GetBlockFromChunkCoordinates), which
-            // makes it a bigger job to Burst-ify. That's the next step.
+            // makes it a bigger job to Burst-ify. That's a later step.
             MeshData meshData = await UniTask.RunOnThreadPool(() => Chunk.GetChunkMeshData(data));
 
             await UniTask.SwitchToMainThread();
 
             ChunkRenderer chunkRenderer = _chunkPool.Get(chunkPos);
             chunkRenderer.InitializeChunk(data);
-            chunkRenderer.UpdateChunk(meshData);
+            chunkRenderer.UpdateChunk(meshData, needsCollider);
             _chunkDictionary[chunkPos] = chunkRenderer;
 
             RefreshLoadedNeighbors(chunkPos);
 
             _loadingChunks.Remove(chunkPos);
+        }
+
+        /// <summary>
+        /// Turns a loaded chunk's collider on/off without touching anything else about it.
+        /// PlayerChunkStreamer calls this every tick for every chunk already in view — it's cheap
+        /// to call repeatedly because it no-ops immediately if the chunk is already in the
+        /// requested state (the common case: most chunks don't cross the collider-distance
+        /// boundary on any given tick).
+        /// </summary>
+        public async UniTask SetChunkColliderAsync(Vector3Int chunkPos, bool needsCollider)
+        {
+            if (!_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
+                return;
+
+            if (renderer.HasCollider == needsCollider)
+                return;
+
+            if (!needsCollider)
+            {
+                // Free — no PhysX cooking, just clearing a reference.
+                renderer.ClearCollider();
+                return;
+            }
+
+            if (!_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData))
+                return;
+
+            // Turning a collider ON needs the mesh data again — we don't cache MeshData after
+            // it's applied, so this recomputes it (same cost as any other mesh refresh). This
+            // only runs for the thin ring of chunks crossing the collider-distance boundary as
+            // the player moves, not for the whole view distance at once.
+            MeshData meshData = await UniTask.RunOnThreadPool(() => Chunk.GetChunkMeshData(chunkData));
+            await UniTask.SwitchToMainThread();
+
+            // Chunk may have unloaded, or the requirement may have flipped again, while this awaited.
+            if (_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer currentRenderer))
+                currentRenderer.UpdateChunk(meshData, needsCollider);
         }
 
         public void UnloadChunk(Vector3Int chunkPos)
@@ -218,22 +261,26 @@ namespace VoxelWorld
             if (_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData) &&
                 _chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
             {
-                renderer.UpdateChunk(Chunk.GetChunkMeshData(chunkData));
+                // Preserve whatever collider state this chunk currently has — mining/building a
+                // block shouldn't silently add or remove a collider that the streamer didn't ask for.
+                renderer.UpdateChunk(Chunk.GetChunkMeshData(chunkData), renderer.HasCollider);
             }
         }
 
         private async UniTask RefreshChunkMeshAsync(Vector3Int chunkPos)
         {
             if (!_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData) ||
-                !_chunkDictionary.ContainsKey(chunkPos))
+                !_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer rendererBeforeAwait))
                 return;
+
+            bool needsCollider = rendererBeforeAwait.HasCollider;
 
             MeshData meshData = await UniTask.RunOnThreadPool(() => Chunk.GetChunkMeshData(chunkData));
             await UniTask.SwitchToMainThread();
 
             // Chunk may have unloaded while this was building in the background — re-check before applying.
             if (_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
-                renderer.UpdateChunk(meshData);
+                renderer.UpdateChunk(meshData, needsCollider);
         }
 
         private void RefreshBoundaryNeighbors(Vector3Int chunkPos, Vector3Int localPos)

@@ -16,6 +16,11 @@ namespace VoxelWorld
 
         public ChunkData ChunkData { get; private set; }
 
+        // Whether this chunk currently has a cooked MeshCollider. Chunks far from the player
+        // are visual-only (no collider) — see WorldRules.ColliderDistanceInChunks and
+        // WorldService.LoadChunkAsync / SetChunkColliderAsync.
+        public bool HasCollider { get; private set; }
+
         public bool ModifiedByThePlayer
         {
             get { return ChunkData.ModifiedByThePlayer; }
@@ -34,7 +39,7 @@ namespace VoxelWorld
             ChunkData = chunkData;
         }
 
-        private void RenderMesh(MeshData meshData)
+        private void RenderMesh(MeshData meshData, bool needsCollider)
         {
             _mesh.Clear();
 
@@ -47,23 +52,39 @@ namespace VoxelWorld
             _mesh.uv = meshData.Uv.Concat(meshData.WaterMesh.Uv).ToArray();
             _mesh.RecalculateNormals();
 
+            if (needsCollider)
+            {
+                // The expensive part: assigning sharedMesh makes PhysX cook a collision mesh
+                // (build its internal BVH) right here, synchronously, on the main thread.
+                // Only pay for this when the chunk is close enough to the player to matter.
+                Mesh collisionMesh = new Mesh();
+                collisionMesh.vertices = meshData.ColliderVertices.ToArray();
+                collisionMesh.triangles = meshData.ColliderTriangles.ToArray();
+                collisionMesh.RecalculateNormals();
+
+                _meshCollider.sharedMesh = collisionMesh;
+                HasCollider = true;
+            }
+            else
+            {
+                ClearCollider();
+            }
+        }
+
+        // Dropping a collider is effectively free — no PhysX cooking, just clearing a reference.
+        public void ClearCollider()
+        {
             _meshCollider.sharedMesh = null;
-            Mesh collisionMesh = new Mesh();
-            collisionMesh.vertices = meshData.ColliderVertices.ToArray();
-            collisionMesh.triangles = meshData.ColliderTriangles.ToArray();
-            collisionMesh.RecalculateNormals();
-
-            _meshCollider.sharedMesh = collisionMesh;
+            HasCollider = false;
         }
 
-        public void UpdateChunk()
+        public void UpdateChunk() => UpdateChunk(Chunk.GetChunkMeshData(ChunkData), needsCollider: true);
+
+        public void UpdateChunk(MeshData data) => UpdateChunk(data, needsCollider: true);
+
+        public void UpdateChunk(MeshData data, bool needsCollider)
         {
-            RenderMesh(Chunk.GetChunkMeshData(ChunkData));
-        }
-        
-        public void UpdateChunk(MeshData data)
-        {
-            RenderMesh(data);
+            RenderMesh(data, needsCollider);
         }
 
 #if UNITY_EDITOR
@@ -78,7 +99,7 @@ namespace VoxelWorld
                     else
                         Gizmos.color = new Color(1, 0, 1, 0.4f);
 
-                    Gizmos.DrawCube(transform.position + new Vector3(ChunkData.ChunkSize / 2f, ChunkData.ChunkHeight / 2f, ChunkData.ChunkSize / 2f), 
+                    Gizmos.DrawCube(transform.position + new Vector3(ChunkData.ChunkSize / 2f, ChunkData.ChunkHeight / 2f, ChunkData.ChunkSize / 2f),
                         new Vector3(ChunkData.ChunkSize, ChunkData.ChunkHeight, ChunkData.ChunkSize));
                 }
             }
