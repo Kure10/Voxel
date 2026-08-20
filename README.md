@@ -8,13 +8,14 @@ v1 — výchozí rozhodnutí (do 7 dnů)
 
 Kdybych měl víc času, zvolil bych DOTS (ECS + Burst) — pro voxelový svět je to dlouhodobě výkonnější řešení. Vzhledem k týdennímu časovému limitu jsem ale zvolil klasický přístup s MonoBehaviour a ručně generovanými meshemi (MeshData, Chunk, ChunkRenderer), doplněný o multithreadové generování chunků (UniTask) a object pooling, abych alespoň částečně pokryl výkonnostní nároky bez plného přechodu na DOTS. DOTS verzi plánuji jako samostatný navazující projekt.
 
-v2 — cílené výkonnostní optimalizace (7dnů ++)
+v2 — cílené výkonnostní optimalizace (7 dnů ++)
 
 Po prvním kole profilování jsem přidal Unity Job System + Burst Compiler tam, kde to šlo bez zásahu do zbytku architektury (tj. bez plného přechodu na DOTS/ECS): generování voxelů chunku (GenerateVoxelsJob, IJobParallelFor přes sloupce chunku, Unity.Mathematics.noise místo Mathf.PerlinNoise) teď běží multithreadově a Burst-kompilované místo jako obyčejný C# na jednom vlákně z UniTask thread poolu. Napojení na zbytek async pipeline řeší malá JobHandleExtensions.ToUniTask() extension metoda, díky které lze na JobHandle čekat přes await bez blokování hlavního vlákna.
 
 Dál jsem přidal dvě streamovací optimalizace v WorldService/PlayerChunkStreamer:
 
 Distance-based collider LOD — MeshCollider (nejdražší část renderu chunku, PhysX cook) se generuje jen chunkům blízko hráče (WorldRules.ColliderDistanceInChunks), vzdálenější chunky jsou jen vizuální (ChunkRenderer.HasCollider / ClearCollider(), WorldService.SetChunkColliderAsync).
+
 Throttled streaming s nearest-first frontou — PlayerChunkStreamer už neodpaluje všechny chunky ve view distance najednou, ale řadí je do fronty podle vzdálenosti od hráče a zpracovává jen omezený počet souběžně (WorldRules.MaxConcurrentChunkLoads, PlayerChunkStreamer.ProcessLoadQueue()), aby se zátěž rozprostřela přes víc snímků místo jednoho velkého výpadku při spawnu/teleportu.
 
 Meshing (Chunk.GetChunkMeshData) zatím zůstává na UniTask.RunOnThreadPool — na Job System/Burst ho zatím nepřevádět, protože čte data napříč hranicemi sousedních chunků, což by vyžadovalo přípravu tzv. padded bufferů. Je to naplánovaný další krok.
