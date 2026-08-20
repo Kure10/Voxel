@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace VoxelWorld
@@ -11,7 +13,7 @@ namespace VoxelWorld
         [Inject] private WorldRules _worldRules;
 
         private readonly ConcurrentDictionary<Vector3Int, BlockType[]> _pendingSavedChunks = new();
-        
+
         private readonly ConcurrentDictionary<Vector3Int, ChunkData> _chunkDataDictionary = new();
         private readonly Dictionary<Vector3Int, ChunkRenderer> _chunkDictionary = new();
         private readonly HashSet<Vector3Int> _loadingChunks = new();
@@ -19,15 +21,19 @@ namespace VoxelWorld
         private TerrainGenerator _terrainGenerator;
         private Vector2Int _worldOffset;
         private ChunkPool _chunkPool;
-        
+
         public int CurrentSeed { get; private set; }
         public int ChunkSize => _worldRules.ChunkSize;
         public int ChunkHeight => _worldRules.ChunkHeight;
         public IEnumerable<Vector3Int> LoadedChunkPositions => _chunkDictionary.Keys;
 
+        // How many chunks are currently mid-flight (job scheduled and/or awaiting meshing).
+        // PlayerChunkStreamer polls this to know whether it has budget to start more loads.
+        public int LoadingChunkCount => _loadingChunks.Count;
+
         public void Init() { }
         public void Destroy() { }
-        
+
         public void SetCurrentSeed(int seed) => CurrentSeed = seed;
         public void Configure(TerrainGenerator terrainGenerator)
         {
@@ -68,7 +74,9 @@ namespace VoxelWorld
             return new Vector3Int(Mathf.FloorToInt(worldPos.x / ChunkSize), 0, Mathf.FloorToInt(worldPos.z / ChunkSize));
         }
 
-        public async UniTask LoadChunkAsync(Vector3Int chunkPos)
+        public bool IsChunkLoaded(Vector3Int chunkPos) => _chunkDictionary.ContainsKey(chunkPos);
+
+        public async UniTask LoadChunkAsync(Vector3Int chunkPos, bool needsCollider)
         {
             if (_chunkDictionary.ContainsKey(chunkPos) || _loadingChunks.Contains(chunkPos))
                 return;
@@ -77,43 +85,80 @@ namespace VoxelWorld
 
             ChunkData data = _chunkDataDictionary.TryGetValue(chunkPos, out ChunkData existing) ? existing : null;
 
-            MeshData meshData = await UniTask.RunOnThreadPool(() =>
+            if (data == null)
             {
-                if (data == null)
+                if (_pendingSavedChunks.TryRemove(chunkPos, out BlockType[] savedBlocks))
                 {
-                    if (_pendingSavedChunks.TryRemove(chunkPos, out BlockType[] savedBlocks))
+                    // Restoring a chunk from a save file — reuse the saved block array, mark as modified
+                    // so it's never silently discarded/regenerated later.
+                    data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos)
                     {
-                        // Restoring a chunk from a save file — reuse the saved block array, mark as modified
-                        // so it's never silently discarded/regenerated later.
-                        data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos)
-                        {
-                            Blocks = savedBlocks,
-                            ModifiedByThePlayer = true
-                        };
-                    }
-                    else
-                    {
-                        // No save data for this position — generate fresh from noise, as usual.
-                        data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos);
-                        GenerateVoxels(data);
-                    }
-
-                    _chunkDataDictionary[chunkPos] = data;
+                        Blocks = savedBlocks,
+                        ModifiedByThePlayer = true
+                    };
+                }
+                else
+                {
+                    // No save data for this position — generate fresh from noise, via a Burst job.
+                    data = new ChunkData(ChunkSize, ChunkHeight, this, chunkPos);
+                    await GenerateVoxelsAsync(data);
                 }
 
-                return Chunk.GetChunkMeshData(data);
-            });
+                _chunkDataDictionary[chunkPos] = data;
+            }
+
+            // Meshing still goes through the .NET thread pool for now — it depends on
+            // neighbouring chunks' data (via Chunk.GetBlockFromChunkCoordinates), which
+            // makes it a bigger job to Burst-ify. That's a later step.
+            MeshData meshData = await UniTask.RunOnThreadPool(() => Chunk.GetChunkMeshData(data));
 
             await UniTask.SwitchToMainThread();
 
             ChunkRenderer chunkRenderer = _chunkPool.Get(chunkPos);
             chunkRenderer.InitializeChunk(data);
-            chunkRenderer.UpdateChunk(meshData);
+            chunkRenderer.UpdateChunk(meshData, needsCollider);
             _chunkDictionary[chunkPos] = chunkRenderer;
 
             RefreshLoadedNeighbors(chunkPos);
 
             _loadingChunks.Remove(chunkPos);
+        }
+
+        /// <summary>
+        /// Turns a loaded chunk's collider on/off without touching anything else about it.
+        /// PlayerChunkStreamer calls this every tick for every chunk already in view — it's cheap
+        /// to call repeatedly because it no-ops immediately if the chunk is already in the
+        /// requested state (the common case: most chunks don't cross the collider-distance
+        /// boundary on any given tick).
+        /// </summary>
+        public async UniTask SetChunkColliderAsync(Vector3Int chunkPos, bool needsCollider)
+        {
+            if (!_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
+                return;
+
+            if (renderer.HasCollider == needsCollider)
+                return;
+
+            if (!needsCollider)
+            {
+                // Free — no PhysX cooking, just clearing a reference.
+                renderer.ClearCollider();
+                return;
+            }
+
+            if (!_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData))
+                return;
+
+            // Turning a collider ON needs the mesh data again — we don't cache MeshData after
+            // it's applied, so this recomputes it (same cost as any other mesh refresh). This
+            // only runs for the thin ring of chunks crossing the collider-distance boundary as
+            // the player moves, not for the whole view distance at once.
+            MeshData meshData = await UniTask.RunOnThreadPool(() => Chunk.GetChunkMeshData(chunkData));
+            await UniTask.SwitchToMainThread();
+
+            // Chunk may have unloaded, or the requirement may have flipped again, while this awaited.
+            if (_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer currentRenderer))
+                currentRenderer.UpdateChunk(meshData, needsCollider);
         }
 
         public void UnloadChunk(Vector3Int chunkPos)
@@ -128,28 +173,57 @@ namespace VoxelWorld
                 _chunkDataDictionary.TryRemove(chunkPos, out _);
         }
 
-        private void GenerateVoxels(ChunkData data)
+        /// <summary>
+        /// Fills data.Blocks using a Burst-compiled, multi-threaded job instead of a
+        /// plain C# nested loop. Runs from the main thread: scheduling a job is cheap,
+        /// the actual work happens on Unity's job worker threads while we asynchronously
+        /// wait via UniTask (no frame is blocked).
+        /// </summary>
+        private async UniTask GenerateVoxelsAsync(ChunkData data)
         {
-            for (int x = 0; x < data.ChunkSize; x++)
+            int voxelCount = data.ChunkSize * data.ChunkHeight * data.ChunkSize;
+
+            // Allocator.Persistent (not TempJob!) because we're awaiting across frames —
+            // TempJob native arrays must be disposed within ~4 frames or the safety system
+            // throws. With many chunks streaming in at once, that window isn't guaranteed.
+            // We dispose this manually right below, once the job is done.
+            var blocks = new NativeArray<BlockType>(voxelCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            var job = new GenerateVoxelsJob
             {
-                for (int z = 0; z < data.ChunkSize; z++)
-                {
-                    int groundPosition = _terrainGenerator.GetSurfaceHeight(
-                        data.WorldPosition.x + x, data.WorldPosition.z + z,
-                        _worldRules.MaxTerrainHeight, ChunkHeight, _worldOffset);
+                ChunkSize = data.ChunkSize,
+                ChunkHeight = data.ChunkHeight,
 
-                    for (int y = 0; y < data.ChunkHeight; y++)
-                    {
-                        BlockType voxelType;
-                        if (y > groundPosition)
-                            voxelType = y < _worldRules.WaterLevel ? BlockType.Water : BlockType.Air;
-                        else
-                            voxelType = _worldRules.GetSolidBlockType(y);
+                WorldPositionX = data.WorldPosition.x,
+                WorldPositionZ = data.WorldPosition.z,
+                WorldOffsetX = _worldOffset.x,
+                WorldOffsetY = _worldOffset.y,
 
-                        Chunk.SetBlock(data, new Vector3Int(x, y, z), voxelType);
-                    }
-                }
-            }
+                NoiseZoom = _terrainGenerator.NoiseSettings.NoiseZoom,
+                Octaves = _terrainGenerator.NoiseSettings.Octaves,
+                Persistance = _terrainGenerator.NoiseSettings.Persistance,
+                RedistributionModifier = _terrainGenerator.NoiseSettings.RedistributionModifier,
+                Exponent = _terrainGenerator.NoiseSettings.Exponent,
+
+                MaxTerrainHeight = _worldRules.MaxTerrainHeight,
+                WaterLevel = _worldRules.WaterLevel,
+                GrayLevelsAboveWater = _worldRules.GrayLevelsAboveWater,
+                GreenLevels = _worldRules.GreenLevels,
+                WhiteLevels = _worldRules.WhiteLevels,
+
+                Blocks = blocks
+            };
+
+            // One iteration per column (x, z); 32 columns per batch handed to each worker thread.
+            int columnCount = data.ChunkSize * data.ChunkSize;
+            JobHandle handle = job.Schedule(columnCount, 32);
+
+            await handle.ToUniTask();
+
+            // Job is guaranteed complete here (ToUniTask called handle.Complete()) —
+            // safe to copy out and dispose the native buffer.
+            blocks.CopyTo(data.Blocks);
+            blocks.Dispose();
         }
 
         public BlockType GetBlockFromChunkCoordinates(int worldX, int worldY, int worldZ)
@@ -187,22 +261,26 @@ namespace VoxelWorld
             if (_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData) &&
                 _chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
             {
-                renderer.UpdateChunk(Chunk.GetChunkMeshData(chunkData));
+                // Preserve whatever collider state this chunk currently has — mining/building a
+                // block shouldn't silently add or remove a collider that the streamer didn't ask for.
+                renderer.UpdateChunk(Chunk.GetChunkMeshData(chunkData), renderer.HasCollider);
             }
         }
-        
+
         private async UniTask RefreshChunkMeshAsync(Vector3Int chunkPos)
         {
             if (!_chunkDataDictionary.TryGetValue(chunkPos, out ChunkData chunkData) ||
-                !_chunkDictionary.ContainsKey(chunkPos))
+                !_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer rendererBeforeAwait))
                 return;
+
+            bool needsCollider = rendererBeforeAwait.HasCollider;
 
             MeshData meshData = await UniTask.RunOnThreadPool(() => Chunk.GetChunkMeshData(chunkData));
             await UniTask.SwitchToMainThread();
 
             // Chunk may have unloaded while this was building in the background — re-check before applying.
             if (_chunkDictionary.TryGetValue(chunkPos, out ChunkRenderer renderer))
-                renderer.UpdateChunk(meshData);
+                renderer.UpdateChunk(meshData, needsCollider);
         }
 
         private void RefreshBoundaryNeighbors(Vector3Int chunkPos, Vector3Int localPos)
@@ -244,14 +322,14 @@ namespace VoxelWorld
             Vector3Int localPos = Chunk.GetBlockInChunkCoordinates(chunkData, worldPos);
             Chunk.ClearBlockDamage(chunkData, localPos);
         }
-        
+
         public void SetPendingSavedChunks(IEnumerable<(Vector3Int position, BlockType[] blocks)> savedChunks)
         {
             _pendingSavedChunks.Clear();
             foreach (var (position, blocks) in savedChunks)
                 _pendingSavedChunks[position] = blocks;
         }
-        
+
         public IEnumerable<ChunkData> GetModifiedChunks() => _chunkDataDictionary.Values.Where(c => c.ModifiedByThePlayer);
     }
 }

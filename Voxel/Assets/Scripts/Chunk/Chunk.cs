@@ -54,6 +54,18 @@ namespace VoxelWorld
                 return chunkData.Blocks[index];
             }
 
+            // Y is NOT chunked like X/Z — there's no vertical chunk stacking, so ChunkHeight is a
+            // permanent world limit, not "not loaded yet". Treating an out-of-height query the same
+            // way as a missing horizontal neighbour (BlockType.Nothing -> "don't draw this face")
+            // was silently hiding the topmost exposed face of any terrain clamped to the chunk
+            // ceiling (see WorldRules' MaxTerrainHeight/ChunkHeight warning) — no visible/collidable
+            // "roof" meant players fell straight through wherever terrain generated tall enough to
+            // get clamped. Below y=0 gets the symmetric treatment so the world floor is solid too.
+            if (y < 0)
+                return BlockType.Gray;
+            if (y >= chunkData.ChunkHeight)
+                return BlockType.Air;
+
             return chunkData.WorldReference.GetBlockFromChunkCoordinates(
                 chunkData.WorldPosition.x + x, chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
         }
@@ -71,7 +83,7 @@ namespace VoxelWorld
                 throw new Exception("Need to ask World for appropiate chunk");
             }
         }
-        
+
         public static int AddBlockDamage(ChunkData chunkData, Vector3Int localPosition)
         {
             int index = GetIndexFromPosition(chunkData, localPosition.x, localPosition.y, localPosition.z);
@@ -103,12 +115,12 @@ namespace VoxelWorld
         public static MeshData GetChunkMeshData(ChunkData chunkData)
         {
             MeshData meshData = new MeshData(true);
-        
+
             LoopThroughTheBlocks(chunkData,
                 (x, y, z) => meshData = BlockHelper.GetMeshData(chunkData, x, y, z, meshData,
                     chunkData.Blocks[GetIndexFromPosition(chunkData, x, y, z)]));
-        
-        
+
+
             return meshData;
         }
     }

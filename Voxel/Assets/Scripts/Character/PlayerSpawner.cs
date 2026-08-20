@@ -22,13 +22,17 @@ namespace VoxelWorld
 
         private void SpawnPlayer()
         {
-            int centerX = 0;
-            int centerZ = 0;
+            // Spawn at the CENTER of the origin chunk, not its corner (0, 0). World.LoadSpawnNeighborhoodAsync
+            // only guarantees the origin chunk + its immediate neighbours (ColliderDistanceInChunks) are
+            // loaded before this fires — spawning at (0, y, 0) put the player right on the seam between
+            // the origin chunk and up to three still-loading neighbours, which is how they fell through.
+            int centerX = _worldService.ChunkSize / 2;
+            int centerZ = _worldService.ChunkSize / 2;
 
             int groundHeight = _worldService.GetSurfaceHeight(centerX, centerZ);
             int waterLevel = _worldRules.WaterLevel;
 
-            int spawnHeight = Mathf.Max(groundHeight, waterLevel) + Mathf.CeilToInt(SpawnHeightOffset);
+            int spawnHeight = Mathf.Max(groundHeight, waterLevel) + Mathf.CeilToInt(SpawnHeightOffset) + 1;
             Vector3 spawnPosition = new Vector3(centerX, spawnHeight, centerZ);
 
             if (_spawnedPlayer == null)
