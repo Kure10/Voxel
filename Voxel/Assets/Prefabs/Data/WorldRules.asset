@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VoxelWorld.WorldRules
   CharacterPrefab: {fileID: 6806332029536266192, guid: 07cd666f5ccddf74cba5157adb0aad46, type: 3}
   ChunkPrefab: {fileID: 5899688019503250217, guid: 3763d4212b7a00f4bab64839a2b65ddc, type: 3}
-  ChunkSize: 16
+  ChunkSize: 36
   ChunkHeight: 36
-  ViewDistanceInChunks: 6
+  ViewDistanceInChunks: 7
   MaxTerrainHeight: 100
   MapSizeInChunks: 6
   WaterLevel: 5
   GrayLevelsAboveWater: 2
   GreenLevels: 5
+  WhiteLevels: 3
   MinDigHeight: 0

@@ -47,25 +47,32 @@
     <Analyzer Include="D:\Programs\UnityHub\6000.3.10f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\ChunkData.cs" />
     <Compile Include="Assets\Scripts\Inject\IManager.cs" />
     <Compile Include="Assets\Scripts\Inject\Services\WorldService.cs" />
     <Compile Include="Assets\Scripts\BlockHelper.cs" />
+    <Compile Include="Assets\Scripts\UI\HotBar\HotbarSlot.cs" />
+    <Compile Include="Assets\Scripts\Chunk\ChunkData.cs" />
     <Compile Include="Assets\Scripts\Inject\Events\PlayerRemovedEvent.cs" />
     <Compile Include="Assets\Scripts\Inject\Managers\MyEventManager.cs" />
+    <Compile Include="Assets\Scripts\UI\HotBar\HotbarController.cs" />
+    <Compile Include="Assets\Scripts\Chunk\ChunkRenderer.cs" />
+    <Compile Include="Assets\Scripts\Chunk\Chunk.cs" />
     <Compile Include="Assets\Scripts\Inject\Inicializer\GameInitializer.cs" />
-    <Compile Include="Assets\Scripts\ChunkRenderer.cs" />
+    <Compile Include="Assets\Scripts\Inject\Events\LoadWorldEvent.cs" />
     <Compile Include="Assets\Scripts\Inject\Inicializer\BaseInitializer.cs" />
     <Compile Include="Assets\Scripts\Inject\IInjectable.cs" />
+    <Compile Include="Assets\Scripts\Jobs\Jobhandleextensions.cs" />
     <Compile Include="Assets\Scripts\Inject\Managers\CoreGameInputsSystem.cs" />
     <Compile Include="Assets\Scripts\Inject\GameContext.cs" />
-    <Compile Include="Assets\Scripts\Chunk.cs" />
     <Compile Include="Assets\Scripts\Character\PlayerController.cs" />
+    <Compile Include="Assets\Scripts\Inject\Services\SaveService.cs" />
     <Compile Include="Assets\Scripts\BlockType.cs" />
+    <Compile Include="Assets\Scripts\Character\PlayerChunkStreamer.cs" />
     <Compile Include="Assets\Scripts\Inject\Controller\Controller.cs" />
     <Compile Include="Assets\Scripts\BlockDataManager.cs" />
     <Compile Include="Assets\Scripts\Inject\Events\PlayerAddedEvent.cs" />
     <Compile Include="Assets\Scripts\World.cs" />
+    <Compile Include="Assets\Scripts\Character\CubeWireFrame.cs" />
     <Compile Include="Assets\Scripts\Character\PlayerActions.cs" />
     <Compile Include="Assets\Scripts\Inject\Injector.cs" />
     <Compile Include="Assets\Scripts\WorldGenerator\NoiseSettingsSO.cs" />
@@ -75,7 +82,12 @@
     <Compile Include="Assets\Scripts\DirectionExtension.cs" />
     <Compile Include="Assets\Scripts\MeshData.cs" />
     <Compile Include="Assets\Scripts\Inject\Events\AbstractEvent.cs" />
+    <Compile Include="Assets\Scripts\Chunk\ChunkPool.cs" />
+    <Compile Include="Assets\Scripts\UI\LoadingScreenController.cs" />
     <Compile Include="Assets\Scripts\WorldRules\WorldRules.cs" />
+    <Compile Include="Assets\Scripts\UI\LoadingSpinner.cs" />
+    <Compile Include="Assets\Scripts\Jobs\GenerateVoxelsJob.cs" />
+    <Compile Include="Assets\Scripts\Inject\Events\HotbarSelectionChangedEvent.cs" />
     <Compile Include="Assets\Scripts\Character\Character.cs" />
     <Compile Include="Assets\Scripts\WorldGenerator\TerrainGenerator.cs" />
     <Compile Include="Assets\Scripts\Inject\Services\PlayerService.cs" />
@@ -93,6 +105,7 @@
     <None Include="Assets\_Textures\Kenny Assets Voxel pack\Spritesheets\spritesheet_tiles.xml" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
+    <None Include="Assets\Art\Shader\CubeFrame.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
     <None Include="Assets\_Textures\Kenny Assets Voxel pack\License.txt" />
@@ -992,8 +1005,14 @@
     <Reference Include="Unity.VisualScripting.Flow.Editor">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.VisualScripting.Flow.Editor.dll</HintPath>
     </Reference>
+    <Reference Include="UniTask.TextMeshPro">
+      <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\UniTask.TextMeshPro.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.VisualStudio.Editor">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.VisualStudio.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UniTask.DOTween">
+      <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\UniTask.DOTween.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.Collections.dll</HintPath>
@@ -1043,11 +1062,17 @@
     <Reference Include="Unity.RenderPipelines.Universal.Config.Runtime">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.RenderPipelines.Universal.Config.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="UniTask.Linq">
+      <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\UniTask.Linq.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Collections.Editor">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.Collections.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UniTask.Addressables">
+      <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\UniTask.Addressables.dll</HintPath>
     </Reference>
     <Reference Include="Unity.ShaderGraph.Editor">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
@@ -1060,6 +1085,9 @@
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UniTask">
+      <HintPath>H:\Projekts\Vox\Voxel\Library\ScriptAssemblies\UniTask.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
